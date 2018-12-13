@@ -20,7 +20,7 @@ type Actor struct {
 	Outbox                    string     `json:"outbox"`
 	Followers                 string     `json:"followers"`
 
-	PublicKey ActorKey `json:"publicKey"`
+	PublicKey PublicKey `json:"publicKey"`
 }
 
 type ActorImage struct {
@@ -28,9 +28,8 @@ type ActorImage struct {
 	URL  string `json:"url,omitempty"`
 }
 
-type ActorKey struct {
+type PublicKey struct {
 	Id           string `json:"id"`
-	Owner        string `json:"owner"`
 	PublicKeyPEM string `json:"publicKeyPem"`
 }
 
