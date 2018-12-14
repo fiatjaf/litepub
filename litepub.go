@@ -15,8 +15,7 @@ import (
 )
 
 type LitePub struct {
-	PrivateKey  *rsa.PrivateKey
-	PublicKeyId string
+	PrivateKey *rsa.PrivateKey
 }
 
 var CONTEXT = []string{
@@ -25,7 +24,11 @@ var CONTEXT = []string{
 	"https://pleroma.site/schemas/litepub-0.1.jsonld",
 }
 
-func (l LitePub) SendSigned(url string, data interface{}) (*http.Response, error) {
+func (l LitePub) SendSigned(
+	publicKeyId string,
+	url string,
+	data interface{},
+) (*http.Response, error) {
 	body := &bytes.Buffer{}
 	json.NewEncoder(body).Encode(data)
 	r, _ := http.NewRequest("POST", url, body)
@@ -43,7 +46,7 @@ func (l LitePub) SendSigned(url string, data interface{}) (*http.Response, error
 	}
 	sigheader := fmt.Sprintf(
 		`keyId="%s",headers="(request-target) host date",signature="%s",algorithm="rsa-sha256"`,
-		l.PublicKeyId, base64.StdEncoding.EncodeToString(signature))
+		publicKeyId, base64.StdEncoding.EncodeToString(signature))
 
 	r.Header.Set("Content-Type", "application/activity+json")
 	r.Header.Set("Digest", fmt.Sprintf("SHA2-256=%x", digest))

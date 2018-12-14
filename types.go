@@ -30,6 +30,7 @@ type ActorImage struct {
 
 type PublicKey struct {
 	Id           string `json:"id"`
+	Owner        string `json:"owner"`
 	PublicKeyPEM string `json:"publicKeyPem"`
 }
 
