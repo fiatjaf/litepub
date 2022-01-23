@@ -19,6 +19,7 @@ type Actor struct {
 	Inbox                     string     `json:"inbox"`
 	Outbox                    string     `json:"outbox"`
 	Followers                 string     `json:"followers"`
+	Following                 string     `json:"following"`
 
 	PublicKey PublicKey `json:"publicKey"`
 }
