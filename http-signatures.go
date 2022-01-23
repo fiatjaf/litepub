@@ -20,12 +20,29 @@ import (
 func SendSigned(
 	privateKey *rsa.PrivateKey,
 	publicKeyId string,
-	url string,
+	target string,
 	data interface{},
 ) (*http.Response, error) {
+	if spl := strings.Split(target, "@"); len(spl) == 2 {
+		// it's an identifier like name@domain.com
+		// turn it into an url/id
+		if url, err := FetchActivityPubURL(target); err != nil {
+			return nil, fmt.Errorf("webfinger fetch failed for '%s': %w", target, err)
+		} else {
+			// then from that grab the url of their AP inbox
+			if actor, err := FetchActor(url); err != nil {
+				return nil, fmt.Errorf("actor fetch failed for '%s': %w", url, err)
+			} else {
+				target = actor.Inbox
+			}
+		}
+	} else {
+		// otherwise it's already an url, which we assume it's the url of an AP inbox
+	}
+
 	body := &bytes.Buffer{}
 	json.NewEncoder(body).Encode(data)
-	r, _ := http.NewRequest("POST", url, body)
+	r, _ := http.NewRequest("POST", target, body)
 
 	date := time.Now().Format("Mon, 02 Jan 2006 15:04:05 GMT")
 	b, _ := ioutil.ReadAll(r.Body)
