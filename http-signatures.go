@@ -8,10 +8,12 @@ import (
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
+	"encoding/binary"
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
 	"io/ioutil"
+	drand "math/rand"
 	"net/http"
 	"strings"
 	"time"
@@ -121,8 +123,18 @@ func CheckSignature(r *http.Request) error {
 	return rsa.VerifyPKCS1v15(key, crypto.SHA256, hashed[:], signature)
 }
 
+func GeneratePrivateKey(seed [4]byte) (*rsa.PrivateKey, error) {
+	sourceSeed := binary.BigEndian.Uint32(seed[:])
+	source := drand.NewSource(int64(sourceSeed))
+	generator := drand.New(source)
+	return rsa.GenerateKey(generator, 2048)
+}
+
 func ParsePrivateKeyFromPEM(pemString string) (*rsa.PrivateKey, error) {
 	decoded, _ := pem.Decode([]byte(pemString))
+	if decoded == nil {
+		return nil, fmt.Errorf("failed to decode PEM private key from string")
+	}
 	sk, err := x509.ParsePKCS1PrivateKey(decoded.Bytes)
 	if err != nil {
 		return nil, err
