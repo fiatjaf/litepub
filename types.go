@@ -1,9 +1,28 @@
 package litepub
 
+import (
+	"encoding/json"
+	"time"
+)
+
+type DummyBaseContext struct{}
+
+func (c *DummyBaseContext) UnmarshalJSON([]byte) error {
+	return nil
+}
+
+func (c DummyBaseContext) MarshalJSON() ([]byte, error) {
+	return json.Marshal([]string{
+		"https://www.w3.org/ns/activitystreams",
+		"https://w3id.org/security/v1",
+		"https://pleroma.site/schemas/litepub-0.1.jsonld",
+	})
+}
+
 type Base struct {
-	Context []string `json:"@context,omitempty"`
-	Id      string   `json:"id"`
-	Type    string   `json:"type"`
+	Context DummyBaseContext `json:"@context"`
+	Id      string           `json:"id"`
+	Type    string           `json:"type"`
 }
 
 type Actor struct {
@@ -20,6 +39,7 @@ type Actor struct {
 	Outbox                    string     `json:"outbox"`
 	Followers                 string     `json:"followers"`
 	Following                 string     `json:"following"`
+	Published                 time.Time  `json:"published"`
 
 	PublicKey PublicKey `json:"publicKey"`
 }
@@ -44,16 +64,17 @@ type Accept struct {
 type OrderedCollection struct {
 	Base
 
-	TotalItems int                   `json:"totalItems"`
-	First      OrderedCollectionPage `json:"first"`
+	TotalItems int             `json:"totalItems"`
+	First      json.RawMessage `json:"first"`
 }
 
-type OrderedCollectionPage struct {
+type OrderedCollectionPage[I any] struct {
 	Base
 
-	TotalItems   int         `json:"totalItems"`
-	PartOf       string      `json:"partOf"`
-	OrderedItems interface{} `json:"orderedItems"`
+	TotalItems   int    `json:"totalItems"`
+	PartOf       string `json:"partOf"`
+	OrderedItems []I    `json:"orderedItems"`
+	Next         string `json:"next"`
 }
 
 type Follow struct {
@@ -63,18 +84,20 @@ type Follow struct {
 	Object string `json:"object"`
 }
 
-type Create struct {
+type Create[O any] struct {
 	Base
 
-	Actor  string      `json:"actor"`
-	Object interface{} `json:"object"`
+	Actor  string `json:"actor"`
+	Object O      `json:"object"`
 }
 
 type Note struct {
 	Base
 
-	Published    string `json:"published"`
-	AttributedTo string `json:"attributedTo"`
-	Content      string `json:"content"`
-	To           string `json:"to"`
+	Published    time.Time `json:"published"`
+	AttributedTo string    `json:"attributedTo"`
+	InReplyTo    string    `json:"InReplyToAtomUri"`
+	Content      string    `json:"content"`
+	To           []string  `json:"to"`
+	CC           []string  `json:"cc"`
 }
